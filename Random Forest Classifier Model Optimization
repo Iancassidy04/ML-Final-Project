@@ -1,0 +1,48 @@
+from sklearn.ensemble import RandomForestClassifier as rfc
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+# Find best RFC model parameters
+max_depth_list = [1, 2, 3, 4, 5,6]
+n_estimators_list = [11,12,13,14]
+max = 0
+max_n = 0
+max_d = 0
+for i in max_depth_list:
+    for j in n_estimators_list:
+        rf = rfc(n_estimators=j, class_weight='balanced', max_depth=i, random_state=42) # create random forest model, balanced
+        rf.fit(X_train, y_train) # Fit rf model to training data
+        acc = rf.score(X_test, y_test) # Calculate accuracy score
+        zero_only_check = 0
+        for ii in range(117):
+            sample_values = X.iloc[ii].values  # Get the values from the i-th row
+            sample_df = pd.DataFrame([sample_values], columns=['stepped_1', 'Nf', 'd2', 'Wafernum', 'RW'])
+            pred = rf.predict(sample_df) # Make prediction on 
+            print(pred)
+            zero_only_check = zero_only_check + pred
+
+        if zero_only_check == 0:
+            print('The model is classifiying everything as an open')
+
+        elif zero_only_check == 117:
+            print('The model is classifiying everything as a short')
+
+        else:
+            max_i = acc
+            
+        if max < max_i:
+            max = max_i
+            max_n = j
+            max_d = i
+
+print(f'Best RFC model has an accuracy of {max}\n n_estimators:{max_n}\nmax_depth:{max_d}')
+
+# create best random forest model
+clf = rfc(n_estimators= max_n, class_weight='balanced', max_depth=max_d, random_state=42)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+# make confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
+disp.plot()
+plt.show()
