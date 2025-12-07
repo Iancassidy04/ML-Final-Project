@@ -1,0 +1,60 @@
+# Ian Cassidy, Grant Floyd
+# 12/6/2025
+# Machine Learning Final
+# Failure Map Plotting
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Creat and fit RFC model
+clf = rfc(n_estimators= max_n, class_weight='balanced', max_depth=max_d, random_state=42) # create random forest model, balanced
+clf.fit(X, y) # Fit rf model to training data
+
+def plot_fail(ax, svs, dev_type, w, N):
+    # Create starting square
+    wafer = w
+    Nf = N
+    x_vals = np.linspace(-1.5, 1.5, 80)
+    y_vals = np.linspace(-1.5, 1.5, 80)
+
+    # Initialize list for coordinates and class
+    coordinate_fail = []
+    for i in range(len(x_vals)):
+        edge = 0 # Base value for edge loop
+        for j in range(len(y_vals)):
+            rad = np.sqrt(x_vals[i]**2 + y_vals[j]**2) # Calculate radial dist from center
+            if rad < 1.5: # Check if point is in circle
+                if edge == 0: 
+                    edge = 1 # If first loop calculate row width (parellel chord)
+                    RW = np.abs(x_vals[i] * 2) * 2540
+                d2 = (1.5 - rad) * 25.4 # Calculate distance from edge
+                point_feat = pd.DataFrame([[svs, Nf, d2, wafer, RW]], 
+                            columns=['stepped_1', 'Nf', 'd2', 'Wafernum', 'RW'])
+                pred = clf.predict(point_feat)
+                coordinate_fail.append([x_vals[i], y_vals[j], int(pred[0])]) # Keep points location and class
+
+    coordinate_fail = np.array(coordinate_fail) # Convert coordinates to array
+
+    # Seperate fails and passes
+    short = coordinate_fail[:, 2] == 1
+    open = coordinate_fail[:, 2] == 0
+
+    ax.scatter(coordinate_fail[short, 0], coordinate_fail[short, 1], color='red', s=6, alpha=0.6) # Plot fail mask
+    ax.scatter(coordinate_fail[open, 0], coordinate_fail[open, 1], color='green', s=6, alpha=0.6) # Plot pass mask
+    circle = plt.Circle((0, 0), 1.5, fill=False, color='blue', linewidth=1) # Add border
+    ax.add_patch(circle)
+    ax.set_title(f'Finger Pairs={N}, {dev_type}') # Label map
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.2)
+
+wafers = [1, 2, 3] # Process List
+Nf_list = [10, 20, 30, 40, 50, 60, 70] # Finger Pairs
+
+for w in wafers:
+    fig, axs = plt.subplots(2, len(Nf_list), figsize=(22, 6), constrained_layout=True) # Create Subplots
+    for idx, N in enumerate(Nf_list):
+        plot_fail(axs[0, idx], 1, 'Stepped', w, N) # Plot failure for stepped device
+        plot_fail(axs[1, idx], 0, 'Standard', w, N) # Plot Failure for standard device
+    fig.suptitle(f'Wafer Prcess {w} Failure Maps', fontsize=18)
+    plt.show()
