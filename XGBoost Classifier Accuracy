@@ -1,0 +1,23 @@
+# Ian Cassidy Grant Floyd
+# 12/6/2025
+# Machine Learning Final
+
+# Import Libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split as tts
+
+# Import data and split data
+data = pd.read_csv(r"C:\Users\ianbc\OneDrive - University of Vermont\Senior Fall\Machine Learning\project\ML_project_data_Exemptions1.csv") # Pull data
+X = data[['stepped_1', 'Nf', 'd2', 'Wafernum', 'RW']] # Input features
+y = data['Short_1'] # Target
+X_train, X_test, y_train, y_test = tts(X,y, test_size=0.2, random_state= 42, stratify = y)
+
+# Extreme Gradient Boosting Classifier
+import xgboost as xgb
+xgb_model = xgb.XGBClassifier()
+
+xgb_model.fit(X_train, y_train)
+acc = xgb_model.score(X_test, y_test) # Calculate accuracy score
+print(acc)
