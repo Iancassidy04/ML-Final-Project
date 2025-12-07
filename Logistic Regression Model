@@ -1,0 +1,36 @@
+# Ian Cassidy Grant Floyd
+# 12/6/2025
+# Machine Learning Final
+
+# Import Libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split as tts
+
+# Import data and split data
+data = pd.read_csv(r"C:\Users\ianbc\OneDrive - University of Vermont\Senior Fall\Machine Learning\project\ML_project_data_Exemptions1.csv") # Pull data
+X = data[['stepped_1', 'Nf', 'd2', 'Wafernum', 'RW']] # Input features
+y = data['Short_1'] # Target
+X_train, X_test, y_train, y_test = tts(X,y, test_size=0.2, random_state= 42, stratify = y)
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Create logistic regression model
+logreg = LogisticRegression(random_state=42, max_iter=1000)
+logreg.fit(X_train, y_train) # Train on data
+
+y_pred = logreg.predict(X_test) # Make test prediction
+
+# Testing accuracy
+test_accuracy = accuracy_score(y_test, y_pred)
+print(f"Testing Accuracy: {test_accuracy:.4f}\n")
+
+# Confusion Matrix
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# Classification Report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
